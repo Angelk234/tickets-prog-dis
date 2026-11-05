@@ -1,0 +1,758 @@
+openapi: 3.0.3
+info:
+  title: API Registro Escolar - Programación Distribuida
+  description: >-
+    Especificación OpenAPI para el servicio backend del sistema de registro escolar (estilo Classroom).
+    Diseñado para la materia de Programación Distribuida.
+    
+    Permite:
+    * Registro y gestión de profesores y alumnos.
+    * Gestión de clases (creación, cupo y asignación de código único de 6 caracteres).
+    * Inscripción de alumnos a clases mediante el código de acceso proporcionado por el profesor.
+  version: 1.0.0
+  contact:
+    name: Equipo de Programación Distribuida
+
+servers:
+  - url: http://127.0.0.1:3000/api
+    description: Servidor local de desarrollo
+
+tags:
+  - name: Clases
+    description: Operaciones sobre clases académicas (crear, listar, consultar, actualizar y eliminar)
+  - name: Inscripciones
+    description: Inscripción de alumnos a clases mediante código de acceso
+  - name: Profesores
+    description: Gestión y alta de profesores
+  - name: Alumnos
+    description: Gestión y alta de estudiantes
+
+paths:
+  # =========================================================================
+  # CLASES
+  # =========================================================================
+  /classes:
+    get:
+      tags:
+        - Clases
+      summary: Listar todas las clases
+      description: Retorna la lista de todas las clases disponibles registradas en el sistema.
+      responses:
+        '200':
+          description: Lista de clases obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Clase'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+    post:
+      tags:
+        - Clases
+      summary: Crear una nueva clase
+      description: >-
+        Permite a un profesor crear una nueva clase con su nombre, cupo y código de acceso único de 6 caracteres.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevaClaseInput'
+      responses:
+        '201':
+          description: Clase creada con éxito.
+          headers:
+            Location:
+              description: URI del nuevo recurso creado.
+              schema:
+                type: string
+                example: /api/classes/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clase'
+        '400':
+          $ref: '#/components/responses/JsonInvalido'
+        '409':
+          description: Conflicto - Ya existe una clase registrada con ese código.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: Ya existe una clase con el código DIS001
+                detalles: []
+        '422':
+          description: Reglas de validación no cumplidas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: Los datos no son válidos
+                detalles:
+                  - 'nombre: obligatorio, de 3 a 80 caracteres'
+                  - 'codigo: obligatorio, 6 letras o números'
+                  - 'cupo: número entero de 1 a 60'
+                  - 'profesor_id: no existe el profesor 99'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /classes/{id}:
+    get:
+      tags:
+        - Clases
+      summary: Consultar una clase por ID
+      description: Obtiene los detalles de una clase específica, incluyendo su código de acceso y profesor asignado.
+      parameters:
+        - $ref: '#/components/parameters/ClaseIdParam'
+      responses:
+        '200':
+          description: Datos de la clase encontrados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clase'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+    put:
+      tags:
+        - Clases
+      summary: Reemplazar / actualizar una clase completa
+      description: Actualiza todos los campos de una clase existente.
+      parameters:
+        - $ref: '#/components/parameters/ClaseIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevaClaseInput'
+      responses:
+        '200':
+          description: Clase actualizada exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Clase'
+        '400':
+          $ref: '#/components/responses/JsonInvalido'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '409':
+          description: Conflicto - El nuevo código ya pertenece a otra clase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+        '422':
+          description: Datos inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+    delete:
+      tags:
+        - Clases
+      summary: Eliminar una clase
+      description: Elimina una clase del sistema según su ID.
+      parameters:
+        - $ref: '#/components/parameters/ClaseIdParam'
+      responses:
+        '204':
+          description: Clase eliminada con éxito (sin contenido en la respuesta).
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /classes/{id}/students:
+    get:
+      tags:
+        - Clases
+        - Inscripciones
+      summary: Consultar alumnos inscritos a una clase
+      description: Retorna la lista de estudiantes inscritos en una clase determinada.
+      parameters:
+        - $ref: '#/components/parameters/ClaseIdParam'
+      responses:
+        '200':
+          description: Lista de alumnos inscritos en la clase.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alumno'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  # =========================================================================
+  # INSCRIPCIONES (ALUMNOS SE UNEN CON CÓDIGO)
+  # =========================================================================
+  /classes/enroll:
+    post:
+      tags:
+        - Inscripciones
+      summary: Inscribir alumno a una clase mediante código
+      description: >-
+        Permite que un estudiante se inscriba a una clase ingresando el código alfanumérico de 6 dígitos
+        proporcionado por el profesor. Verifica cupo y que no esté ya inscrito.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InscripcionPorCodigoInput'
+      responses:
+        '201':
+          description: Inscripción completada con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inscripcion'
+        '400':
+          $ref: '#/components/responses/JsonInvalido'
+        '404':
+          description: Código de clase no encontrado o alumno no existente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: No existe ninguna clase con el código XYZ999
+                detalles: []
+        '409':
+          description: El alumno ya está inscrito en la clase o se alcanzó el cupo máximo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: La clase ha alcanzado su cupo máximo
+                detalles: []
+        '422':
+          description: Datos de inscripción incompletos o erróneos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  # =========================================================================
+  # PROFESORES
+  # =========================================================================
+  /teachers:
+    get:
+      tags:
+        - Profesores
+      summary: Listar todos los profesores
+      description: Obtiene la lista de profesores dados de alta en el sistema.
+      responses:
+        '200':
+          description: Lista de profesores obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profesor'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+    post:
+      tags:
+        - Profesores
+      summary: Dar de alta un nuevo profesor
+      description: Permite registrar un nuevo profesor en el sistema.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevoProfesorInput'
+      responses:
+        '201':
+          description: Profesor registrado exitosamente.
+          headers:
+            Location:
+              description: URI del profesor creado.
+              schema:
+                type: string
+                example: /api/teachers/3
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profesor'
+        '400':
+          $ref: '#/components/responses/JsonInvalido'
+        '409':
+          description: Ya existe un profesor con el mismo correo o número de empleado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+        '422':
+          description: Datos de profesor inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /teachers/{id}:
+    get:
+      tags:
+        - Profesores
+      summary: Consultar un profesor por ID
+      description: Obtiene la información de un profesor específico.
+      parameters:
+        - $ref: '#/components/parameters/ProfesorIdParam'
+      responses:
+        '200':
+          description: Datos del profesor encontrados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profesor'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /teachers/{id}/classes:
+    get:
+      tags:
+        - Profesores
+        - Clases
+      summary: Consultar clases creadas por un profesor
+      description: Retorna todas las clases que están a cargo de un profesor específico.
+      parameters:
+        - $ref: '#/components/parameters/ProfesorIdParam'
+      responses:
+        '200':
+          description: Lista de clases del profesor.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Clase'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  # =========================================================================
+  # ALUMNOS
+  # =========================================================================
+  /students:
+    get:
+      tags:
+        - Alumnos
+      summary: Listar todos los alumnos
+      description: Obtiene la lista completa de alumnos registrados.
+      responses:
+        '200':
+          description: Lista de alumnos obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alumno'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+    post:
+      tags:
+        - Alumnos
+      summary: Dar de alta un nuevo alumno
+      description: Registra a un nuevo estudiante en el sistema para que pueda inscribirse a clases.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevoAlumnoInput'
+      responses:
+        '201':
+          description: Alumno registrado exitosamente.
+          headers:
+            Location:
+              description: URI del alumno creado.
+              schema:
+                type: string
+                example: /api/students/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumno'
+        '400':
+          $ref: '#/components/responses/JsonInvalido'
+        '409':
+          description: Matrícula o correo ya registrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: Ya existe un alumno con la matrícula 20204845
+                detalles: []
+        '422':
+          description: Datos del alumno no válidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorRespuesta'
+              example:
+                error: Los datos no son válidos
+                detalles:
+                  - 'matricula: debe tener 8 dígitos numéricos'
+                  - 'nombre: de 3 a 80 caracteres'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /students/{id}:
+    get:
+      tags:
+        - Alumnos
+      summary: Consultar un alumno por ID
+      description: Obtiene la información de perfil de un estudiante.
+      parameters:
+        - $ref: '#/components/parameters/AlumnoIdParam'
+      responses:
+        '200':
+          description: Datos del alumno encontrados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumno'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+  /students/{id}/classes:
+    get:
+      tags:
+        - Alumnos
+        - Clases
+        - Inscripciones
+      summary: Consultar las clases inscritas de un alumno
+      description: Retorna todas las clases en las que se encuentra inscrito un alumno.
+      parameters:
+        - $ref: '#/components/parameters/AlumnoIdParam'
+      responses:
+        '200':
+          description: Lista de clases en las que participa el estudiante.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Clase'
+        '404':
+          $ref: '#/components/responses/NoEncontrado'
+        '500':
+          $ref: '#/components/responses/ErrorInterno'
+
+# =============================================================================
+# COMPONENTES Y ESQUEMAS REUTILIZABLES
+# =============================================================================
+components:
+  parameters:
+    ClaseIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador numérico de la clase
+      schema:
+        type: integer
+        example: 1
+
+    ProfesorIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador numérico del profesor
+      schema:
+        type: integer
+        example: 1
+
+    AlumnoIdParam:
+      name: id
+      in: path
+      required: true
+      description: Identificador numérico del alumno
+      schema:
+        type: integer
+        example: 1
+
+  responses:
+    JsonInvalido:
+      description: Formato JSON mal formado o inválido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            error: El cuerpo no es un JSON válido
+            detalles: []
+
+    NoEncontrado:
+      description: Recurso no encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            error: No existe el recurso solicitado
+            detalles: []
+
+    ErrorInterno:
+      description: Error inesperado en el servidor.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRespuesta'
+          example:
+            error: Error interno del servidor
+            detalles: []
+
+  schemas:
+    # -------------------------------------------------------------------------
+    # Errores estándar de la API
+    # -------------------------------------------------------------------------
+    ErrorRespuesta:
+      type: object
+      required:
+        - error
+        - detalles
+      properties:
+        error:
+          type: string
+          description: Mensaje principal del error
+          example: Los datos no son válidos
+        detalles:
+          type: array
+          description: Lista de inconsistencias o validaciones que fallaron
+          items:
+            type: string
+          example:
+            - 'nombre: obligatorio, de 3 a 80 caracteres'
+            - 'codigo: obligatorio, 6 letras o números'
+
+    # -------------------------------------------------------------------------
+    # Clases
+    # -------------------------------------------------------------------------
+    Clase:
+      type: object
+      required:
+        - id
+        - nombre
+        - codigo
+        - cupo
+        - profesor_id
+      properties:
+        id:
+          type: integer
+          description: Identificador autoincremental de la clase
+          example: 1
+        nombre:
+          type: string
+          description: Nombre de la asignatura o clase (3 a 80 caracteres)
+          example: Programación Distribuida
+        codigo:
+          type: string
+          description: Código alfanumérico único de 6 caracteres para que los alumnos se inscriban
+          example: DIS001
+        cupo:
+          type: integer
+          description: Cupo máximo permitido de alumnos (entre 1 y 60)
+          example: 30
+        profesor_id:
+          type: integer
+          description: ID del profesor titular a cargo de la clase
+          example: 1
+
+    NuevaClaseInput:
+      type: object
+      required:
+        - nombre
+        - codigo
+        - cupo
+        - profesor_id
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: Nombre de la clase
+          example: Programación Distribuida
+        codigo:
+          type: string
+          pattern: '^[A-Za-z0-9]{6}$'
+          description: Código de 6 letras o números
+          example: DIS001
+        cupo:
+          type: integer
+          minimum: 1
+          maximum: 60
+          description: Cupo de estudiantes
+          example: 30
+        profesor_id:
+          type: integer
+          minimum: 1
+          description: ID de un profesor registrado
+          example: 1
+
+    # -------------------------------------------------------------------------
+    # Profesores
+    # -------------------------------------------------------------------------
+    Profesor:
+      type: object
+      required:
+        - id
+        - nombre
+      properties:
+        id:
+          type: integer
+          description: Identificador único del profesor
+          example: 1
+        nombre:
+          type: string
+          description: Nombre completo del profesor
+          example: Ricardo Jaramillo Velasco
+        email:
+          type: string
+          format: email
+          description: Correo electrónico institucional
+          example: rjaramillo@universidad.edu.mx
+
+    NuevoProfesorInput:
+      type: object
+      required:
+        - nombre
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Nombre completo del profesor
+          example: Ricardo Jaramillo Velasco
+        email:
+          type: string
+          format: email
+          description: Correo institucional opcional
+          example: rjaramillo@universidad.edu.mx
+
+    # -------------------------------------------------------------------------
+    # Alumnos
+    # -------------------------------------------------------------------------
+    Alumno:
+      type: object
+      required:
+        - id
+        - nombre
+        - matricula
+      properties:
+        id:
+          type: integer
+          description: Identificador único del alumno
+          example: 1
+        nombre:
+          type: string
+          description: Nombre completo del alumno
+          example: Juan Pérez González
+        matricula:
+          type: string
+          description: Matrícula estudiantil de 8 dígitos
+          example: '20204845'
+        email:
+          type: string
+          format: email
+          description: Correo electrónico del alumno
+          example: alu20204845@universidad.edu.mx
+
+    NuevoAlumnoInput:
+      type: object
+      required:
+        - nombre
+        - matricula
+      properties:
+        nombre:
+          type: string
+          minLength: 3
+          maxLength: 100
+          description: Nombre completo del alumno
+          example: Juan Pérez González
+        matricula:
+          type: string
+          pattern: '^[0-9]{8}$'
+          description: Matrícula de 8 dígitos
+          example: '20204845'
+        email:
+          type: string
+          format: email
+          description: Correo del alumno
+          example: alu20204845@universidad.edu.mx
+
+    # -------------------------------------------------------------------------
+    # Inscripciones
+    # -------------------------------------------------------------------------
+    InscripcionPorCodigoInput:
+      type: object
+      required:
+        - alumno_id
+        - codigo
+      properties:
+        alumno_id:
+          type: integer
+          description: ID del alumno que se inscribe
+          example: 1
+        codigo:
+          type: string
+          pattern: '^[A-Za-z0-9]{6}$'
+          description: Código de la clase proporcionado por el profesor
+          example: DIS001
+
+    Inscripcion:
+      type: object
+      required:
+        - id
+        - alumno_id
+        - clase_id
+        - fecha
+      properties:
+        id:
+          type: integer
+          description: Identificador de la inscripción
+          example: 10
+        alumno_id:
+          type: integer
+          description: ID del alumno inscrito
+          example: 1
+        clase_id:
+          type: integer
+          description: ID de la clase
+          example: 1
+        fecha:
+          type: string
+          format: date-time
+          description: Fecha y hora en la que se realizó la inscripción
+          example: '2026-11-05T08:00:00Z'
+

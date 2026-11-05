@@ -2,11 +2,17 @@
 // npm install   ·   npm start   (o: node src/app.js)
 
 const express = require('express');
+const path = require('path');
 const clases = require('./routes/clases');
 const { error } = require('./utils/error');
 
 const app = express();
 app.use(express.json());
+
+app.get('/openapi.yaml', (q, r) =>
+  r.sendFile(path.join(__dirname, 'openapi.yaml')));
+app.get('/docs', (q, r) =>
+  r.sendFile(path.join(__dirname, 'docs.html')));
 
 app.use('/api/classes', clases);
 
