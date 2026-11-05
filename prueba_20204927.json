@@ -1,0 +1,27 @@
+{
+  "matricula": "20204927",
+  "base": "http://127.0.0.1:3000/api",
+  "coleccion": "/classes",
+  "campo_id": "id",
+  "valido": {
+    "nombre": "Programación Distribuida",
+    "codigo": "DIS001",
+    "cupo": 30,
+    "profesor_id": 1
+  },
+  "invalido": {
+    "nombre": "",
+    "codigo": "AB",
+    "cupo": 0,
+    "profesor_id": "abc"
+  },
+  "metodo_cambio": "PUT",
+  "cambio": {
+    "nombre": "Programación Distribuida Avanzada",
+    "codigo": "DIS001",
+    "cupo": 35,
+    "profesor_id": 1
+  },
+  "id_inexistente": "999999",
+  "encabezados": {}
+}
