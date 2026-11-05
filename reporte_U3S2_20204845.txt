@@ -1,4 +1,4 @@
-Probando http://127.0.0.1:3000/equipos con la matrícula 20204845
+Probando http://127.0.0.1:3000/api/classes con la matrícula 20204845
 
 [OK]  1. POST con datos válidos crea (201)            -> 201
 [OK]  2. GET del recurso creado (200)                 -> 200
@@ -13,4 +13,4 @@ Probando http://127.0.0.1:3000/equipos con la matrícula 20204845
 [OK] 11. GET después de borrar (404)                  -> 404
 
 RESULTADO: 11 de 11
-U3S2;20204845;http://127.0.0.1:3000/equipos;11111111111;55000BE6
+U3S2;20204845;http://127.0.0.1:3000/api/classes;11111111111;55000BE6
