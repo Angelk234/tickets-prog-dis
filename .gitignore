@@ -1,1 +1,3 @@
 node_modules
+registro.db
+.persistencia_*.json

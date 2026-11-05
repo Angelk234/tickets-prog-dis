@@ -1,0 +1,135 @@
+openapi: 3.0.3
+info:
+  title: "API de Registro de estudiantes"
+  version: "1.0"
+  description: "Todos los errores responden {\"error\", \"detalles\"}."
+servers:
+  - url: "/api"
+paths:
+  "/classes":
+    get:
+      summary: "Listar classes"
+      responses:
+        "200":
+          description: "Lista"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: "#/components/schemas/Clase"}
+    post:
+      summary: "Crear"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ClaseNuevo"}
+      responses:
+        "201":
+          description: "Creado"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Clase"}
+        "400": {$ref: "#/components/responses/JsonInvalido"}
+        "409": {$ref: "#/components/responses/Conflicto"}
+        "422": {$ref: "#/components/responses/DatosInvalidos"}
+  "/classes/{id}":
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: integer}
+    get:
+      summary: "Consultar uno"
+      responses:
+        "200":
+          description: "Encontrado"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Clase"}
+        "404": {$ref: "#/components/responses/NoExiste"}
+    put:
+      summary: "Reemplazar completo"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ClaseNuevo"}
+      responses:
+        "200":
+          description: "Reemplazado"
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Clase"}
+        "400": {$ref: "#/components/responses/JsonInvalido"}
+        "404": {$ref: "#/components/responses/NoExiste"}
+        "409": {$ref: "#/components/responses/Conflicto"}
+        "422": {$ref: "#/components/responses/DatosInvalidos"}
+    delete:
+      summary: "Borrar"
+      responses:
+        "204":
+          description: "Borrado"
+        "404": {$ref: "#/components/responses/NoExiste"}
+components:
+  schemas:
+    ClaseNuevo:
+      type: object
+      required: ["nombre", "codigo", "cupo", "profesor_id"]
+      properties:
+        "nombre":
+          type: string
+          minLength: 3
+          maxLength: 80
+          description: "obligatorio, de 3 a 80 caracteres"
+        "codigo":
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: "^[A-Za-z0-9]{6}$"
+          description: "obligatorio, 6 letras o números, único"
+        "cupo":
+          type: integer
+          minimum: 1
+          maximum: 60
+          description: "obligatorio, de 1 a 60"
+        "profesor_id":
+          type: integer
+          minimum: 1
+          description: "obligatorio, debe existir el profesor"
+    Clase:
+      allOf:
+        - $ref: "#/components/schemas/ClaseNuevo"
+        - type: object
+          required: ["id"]
+          properties:
+            id: {type: integer}
+    Error:
+      type: object
+      required: ["error", "detalles"]
+      properties:
+        error: {type: string}
+        detalles:
+          type: array
+          items: {type: string}
+  responses:
+    JsonInvalido:
+      description: "El cuerpo no es un JSON válido"
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    DatosInvalidos:
+      description: "Los datos no cumplen las reglas"
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    NoExiste:
+      description: "No existe esa clase"
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+    Conflicto:
+      description: "Ya existe una clase con ese código"
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}

@@ -23,5 +23,6 @@
     "profesor_id": 1
   },
   "id_inexistente": "999999",
+  "openapi": "/openapi.yaml",
   "encabezados": {}
 }
