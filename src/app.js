@@ -8,6 +8,7 @@ const clases = require('./routes/clases');
 const { error } = require('./utils/error');
 
 const CONTRATO = path.join(__dirname, '..', 'openapi.yaml');
+const DOCS = path.join(__dirname, '..', 'docs.html');
 
 const app = express();
 app.use(express.json());
@@ -16,13 +17,7 @@ app.use('/api/classes', clases);
 
 // El contrato OpenAPI y su documentación (Swagger UI)
 app.get(['/api/openapi.yaml', '/openapi.yaml'], (req, res) => res.type('application/yaml').sendFile(CONTRATO));
-app.get('/docs', (req, res) => res.type('html').send(`<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>Registro de estudiantes · /docs</title>
-<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"></head>
-<body><div id="docs"></div>
-<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
-<script>SwaggerUIBundle({ url: '/api/openapi.yaml', dom_id: '#docs' });</script>
-</body></html>`));
+app.get('/docs', (req, res) => res.sendFile(DOCS));
 
 app.use((req, res) => error(res, 404, `No existe la ruta ${req.method} ${req.path}`));
 
