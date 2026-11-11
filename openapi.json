@@ -1,0 +1,1097 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Registro de estudiantes",
+    "version": "2.0",
+    "description": "Sistema de registro escolar estilo Classroom con autenticación JWT, control de acceso por roles (admin, profesor, alumno) y aislamiento de recursos por dueño (SEC-311). Todos los errores responden {\"error\", \"detalles\"}."
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Iniciar sesión y obtener JWT",
+        "description": "Valida usuario y clave con bcrypt y devuelve un token Bearer HS256. Nunca incluye la clave ni el hash.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sesión iniciada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenRespuesta"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Consultar perfil autenticado",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos del usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioPerfil"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          }
+        }
+      }
+    },
+    "/classes": {
+      "get": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Listar clases visibles según el rol",
+        "description": "Admin ve todas; profesor ve las suyas; alumno solo ve las clases en las que está inscrito.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Clase"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Crear clase (admin o profesor)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaseNuevo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Clase"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    },
+    "/classes/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Consultar una clase",
+        "description": "Admin consulta cualquiera; profesor solo las suyas; alumno solo si está inscrito (404 si es ajena).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Clase"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Reemplazar clase completa (admin o profesor dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClaseNuevo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reemplazado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Clase"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Borrar clase (admin o profesor dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Borrado"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          }
+        }
+      }
+    },
+    "/classes/{id}/students": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Clases"
+        ],
+        "summary": "Listar alumnos inscritos en la clase (admin o profesor dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de alumnos inscritos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AlumnoInscrito"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          }
+        }
+      }
+    },
+    "/inscripciones": {
+      "get": {
+        "tags": [
+          "Inscripciones"
+        ],
+        "summary": "Listar inscripciones (SEC-311)",
+        "description": "Alumno solo ve sus propias inscripciones; profesor las de sus clases; admin todas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de inscripciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Inscripcion"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Inscripciones"
+        ],
+        "summary": "Inscribirse a una clase por código (solo alumno)",
+        "description": "El dueño (usuario) siempre se toma del JWT, nunca del cuerpo.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InscripcionNuevo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Inscrito correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inscripcion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    },
+    "/inscripciones/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Inscripciones"
+        ],
+        "summary": "Consultar una inscripción propia (SEC-311)",
+        "description": "Devuelve 404 si la inscripción no existe o pertenece a otro usuario.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Inscripción encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inscripcion"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Inscripciones"
+        ],
+        "summary": "Cancelar inscripción propia",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Inscripción cancelada"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoExiste"
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Listar usuarios (solo admin)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Usuario"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Dar de alta un usuario (admin cualquier rol; profesor solo profesores)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsuarioNuevo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    },
+    "/teachers": {
+      "get": {
+        "tags": [
+          "Profesores"
+        ],
+        "summary": "Listar profesores (admin o profesor)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de profesores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Profesor"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Profesores"
+        ],
+        "summary": "Dar de alta otro profesor (admin o profesor)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuentaInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Profesor creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    },
+    "/students": {
+      "get": {
+        "tags": [
+          "Alumnos"
+        ],
+        "summary": "Listar alumnos (admin o profesor)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de alumnos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Usuario"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Alumnos"
+        ],
+        "summary": "Dar de alta nuevo alumno (admin o profesor; rol forzado a alumno)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuentaInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Alumno creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "401": {
+            "$ref": "#/components/responses/SinSesion"
+          },
+          "403": {
+            "$ref": "#/components/responses/SinPermiso"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflicto"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "LoginInput": {
+        "type": "object",
+        "required": [
+          "usuario",
+          "clave"
+        ],
+        "properties": {
+          "usuario": {
+            "type": "string",
+            "example": "admin"
+          },
+          "clave": {
+            "type": "string",
+            "example": "admin123"
+          }
+        }
+      },
+      "TokenRespuesta": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "example": "bearer"
+          },
+          "usuario": {
+            "type": "string",
+            "example": "admin"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "profesor",
+              "alumno"
+            ]
+          }
+        }
+      },
+      "UsuarioPerfil": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "profesor",
+              "alumno"
+            ]
+          },
+          "profesor_id": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "CuentaInput": {
+        "type": "object",
+        "required": [
+          "usuario",
+          "nombre",
+          "clave"
+        ],
+        "properties": {
+          "usuario": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80
+          },
+          "clave": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 72
+          }
+        }
+      },
+      "UsuarioNuevo": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CuentaInput"
+          },
+          {
+            "type": "object",
+            "required": [
+              "rol"
+            ],
+            "properties": {
+              "rol": {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "profesor",
+                  "alumno"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "Usuario": {
+        "type": "object",
+        "required": [
+          "id",
+          "usuario",
+          "nombre",
+          "rol"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "profesor",
+              "alumno"
+            ]
+          },
+          "profesor_id": {
+            "type": "integer"
+          }
+        }
+      },
+      "Profesor": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ClaseNuevo": {
+        "type": "object",
+        "required": [
+          "nombre",
+          "codigo",
+          "cupo",
+          "profesor_id"
+        ],
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 80,
+            "description": "obligatorio, de 3 a 80 caracteres"
+          },
+          "codigo": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6,
+            "pattern": "^[A-Za-z0-9]{6}$",
+            "description": "obligatorio, 6 letras o números, único"
+          },
+          "cupo": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60,
+            "description": "obligatorio, de 1 a 60"
+          },
+          "profesor_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "obligatorio, debe existir el profesor"
+          }
+        }
+      },
+      "Clase": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClaseNuevo"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      },
+      "AlumnoInscrito": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "fecha_inscripcion": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InscripcionNuevo": {
+        "type": "object",
+        "required": [
+          "codigo"
+        ],
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 6,
+            "pattern": "^[A-Za-z0-9]{6}$",
+            "example": "SIS202"
+          }
+        }
+      },
+      "Inscripcion": {
+        "type": "object",
+        "required": [
+          "id",
+          "usuario",
+          "clase_id",
+          "codigo",
+          "clase_nombre",
+          "fecha"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "clase_id": {
+            "type": "integer"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "clase_nombre": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error",
+          "detalles"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "detalles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "JsonInvalido": {
+        "description": "El cuerpo no es un JSON válido",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "DatosInvalidos": {
+        "description": "Los datos no cumplen las reglas",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NoExiste": {
+        "description": "No existe ese recurso",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflicto": {
+        "description": "Conflicto con recurso existente o cupo",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "SinSesion": {
+        "description": "Falta el token JWT, las credenciales son incorrectas o el token expiró",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "SinPermiso": {
+        "description": "El rol autenticado no tiene permisos para realizar esta operación",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}
