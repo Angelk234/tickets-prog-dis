@@ -23,5 +23,28 @@
     "profesor_id": 1
   },
   "id_inexistente": "999999",
-  "encabezados": {}
+  "openapi": "/openapi.yaml",
+  "encabezados": {},
+  "auth": {
+    "login": "/login",
+    "campo_token": "access_token",
+    "admin": {
+      "usuario": "admin",
+      "clave": "admin123"
+    },
+    "usuario": {
+      "usuario": "ana",
+      "clave": "ana12345"
+    },
+    "otro": {
+      "usuario": "beto",
+      "clave": "beto12345"
+    }
+  },
+  "propio": {
+    "coleccion": "/inscripciones",
+    "valido": {
+      "codigo": "SIS202"
+    }
+  }
 }
