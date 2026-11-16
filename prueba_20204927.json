@@ -46,5 +46,13 @@
     "valido": {
       "codigo": "SIS202"
     }
+  },
+  "externo": {
+    "metodo": "POST",
+    "ruta": "/estudiantes/carrera",
+    "cuerpo": {
+      "carrera": "ing en soft"
+    },
+    "simulador": "http://127.0.0.1:9000"
   }
 }

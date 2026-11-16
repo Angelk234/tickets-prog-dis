@@ -714,6 +714,97 @@
           }
         }
       }
+    },
+    "/estudiantes/carrera": {
+      "post": {
+        "tags": [
+          "Estudiantes",
+          "IA"
+        ],
+        "summary": "Normalizar y clasificar carrera con IA (Gemini)",
+        "description": "Recibe el texto de la carrera escrito por un alumno y consulta Gemini para obtener el área y nombre normalizado.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "carrera"
+                ],
+                "properties": {
+                  "carrera": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 300,
+                    "example": "ing en soft"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Carrera clasificada por la IA",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "area",
+                    "carrera"
+                  ],
+                  "properties": {
+                    "area": {
+                      "type": "string",
+                      "enum": [
+                        "ingenieria",
+                        "ciencias",
+                        "sociales",
+                        "salud",
+                        "artes",
+                        "otra"
+                      ],
+                      "example": "ingenieria"
+                    },
+                    "carrera": {
+                      "type": "string",
+                      "example": "Ingeniería en Software"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/JsonInvalido"
+          },
+          "422": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "502": {
+            "description": "La IA no está disponible o respondió algo inesperado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "La IA tardó demasiado en responder (timeout)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
