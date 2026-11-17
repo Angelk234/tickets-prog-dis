@@ -54,5 +54,8 @@
       "carrera": "ing en soft"
     },
     "simulador": "http://127.0.0.1:9000"
+  },
+  "cors": {
+    "origen": "http://127.0.0.1:5500"
   }
 }

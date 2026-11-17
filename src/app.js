@@ -1,4 +1,4 @@
-// app.js — Registro de estudiantes · Unidad III, Sesión 5 (APIs de terceros y Gemini IA)
+// app.js — Registro de estudiantes · Unidad III, Sesión 6 (front en el navegador y CORS)
 // npm install   ·   npm start   (o: node src/app.js)
 // Contrato: http://127.0.0.1:3000/docs  ·  http://127.0.0.1:3000/api/openapi.yaml
 
@@ -28,6 +28,18 @@ const CONTRATO_JSON = path.join(__dirname, '..', 'openapi.json');
 const DOCS = path.join(__dirname, '..', 'docs.html');
 
 const app = express();
+
+// ---------- CORS: qué páginas pueden usar su API desde el navegador ----------
+// Va antes de las rutas y del token: la pregunta previa (OPTIONS) no trae token.
+const cors = require('cors');
+const ORIGENES = (process.env.CORS_ORIGENES ?? 'http://127.0.0.1:5500,http://localhost:5500').split(',');
+
+app.use(cors({
+  origin: ORIGENES,                                   // una lista, nunca '*'
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type']   // sin Authorization, el token no pasa la pregunta previa
+}));
+
 app.use(express.json());
 
 // Autenticación (/api/login, /api/me y alias /login)
