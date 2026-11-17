@@ -1,10 +1,26 @@
-// app.js — Registro de estudiantes · Unidad III, Sesión 3
+// app.js — Registro de estudiantes · Unidad III, Sesión 5 (APIs de terceros y Gemini IA)
 // npm install   ·   npm start   (o: node src/app.js)
 // Contrato: http://127.0.0.1:3000/docs  ·  http://127.0.0.1:3000/api/openapi.yaml
 
 const path = require('node:path');
+
+if (typeof process.loadEnvFile === 'function') {
+  try {
+    process.loadEnvFile(path.join(__dirname, '..', '.env'));
+  } catch (e) {
+    // Si no existe el archivo .env se utilizan las variables del entorno del sistema
+  }
+}
+if (!process.env.GEMINI_API_KEY && process.env.API_KEY) {
+  process.env.GEMINI_API_KEY = process.env.API_KEY;
+}
+
 const express = require('express');
+const auth = require('./routes/auth');
 const clases = require('./routes/clases');
+const inscripciones = require('./routes/inscripciones');
+const usuarios = require('./routes/usuarios');
+const estudiantes = require('./routes/estudiantes');
 const { error } = require('./utils/error');
 
 const CONTRATO = path.join(__dirname, '..', 'openapi.yaml');
@@ -14,7 +30,16 @@ const DOCS = path.join(__dirname, '..', 'docs.html');
 const app = express();
 app.use(express.json());
 
+// Autenticación (/api/login, /api/me y alias /login)
+app.use('/api', auth);
+app.use('/', auth);
+
+// Recursos de la API
 app.use('/api/classes', clases);
+app.use('/api/inscripciones', inscripciones);
+app.use('/api', usuarios);
+app.use('/api', estudiantes);
+app.use('/', estudiantes);
 
 // El contrato OpenAPI y su documentación (Swagger UI)
 app.get(['/api/openapi.yaml', '/openapi.yaml'], (req, res) => res.type('application/yaml').sendFile(CONTRATO));
@@ -28,4 +53,5 @@ app.use((err, req, res, next) => {                 // JSON roto y cualquier otro
   error(res, 500, 'Error interno del servidor');
 });
 
-app.listen(3000, () => console.log('Escuchando en http://127.0.0.1:3000  ·  contrato en /docs'));
+const PORT = Number(process.env.PORT) || 3000;
+app.listen(PORT, () => console.log(`Escuchando en http://127.0.0.1:${PORT}  ·  contrato en /docs`));
