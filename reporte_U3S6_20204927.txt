@@ -1,4 +1,4 @@
-Probando http://127.0.0.1:3000/api/classes con la matrícula 20204927
+Probando http://127.0.0.1:3100/api/classes con la matrícula 20204927
 
 [OK]  1. POST con datos válidos crea (201)            -> 201
 [OK]  2. GET del recurso creado (200)                 -> 200
@@ -30,4 +30,4 @@ Probando http://127.0.0.1:3000/api/classes con la matrícula 20204927
 [OK] 28. CORS: la pregunta previa acepta Authorization -> 204
 
 RESULTADO: 28 de 28
-U3S6;20204927;http://127.0.0.1:3000/api/classes;1111111111111111111111111111;0CE0A10C
+U3S6;20204927;http://127.0.0.1:3100/api/classes;1111111111111111111111111111;0CE0A10C
