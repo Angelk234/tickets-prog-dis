@@ -271,8 +271,10 @@ $('#fIA').addEventListener('submit', async ev => {
   const { codigo, datos } = await pedir(CONFIG.ia.metodo || 'POST', CONFIG.ia.ruta, cuerpo);
   clearInterval(reloj); btn.disabled = false;
   if ((codigo === 200 || codigo === 201) && datos) {
-    const quitar = new Set(['id', 'usuario', 'fecha', 'equipo_id', CONFIG.ia.campo]);
-    $('#iaRes').innerHTML = '<div class="chips">' + Object.entries(datos).filter(([k]) => !quitar.has(k))
+    const quitar = new Set(['id', 'usuario', 'fecha', 'equipo_id']);
+    // el campo de entrada solo se oculta si la IA lo regresa igual; si lo corrigió, se muestra
+    const eco = ([k, v]) => k === CONFIG.ia.campo && String(v).trim() === texto;
+    $('#iaRes').innerHTML = '<div class="chips">' + Object.entries(datos).filter(e => !quitar.has(e[0]) && !eco(e))
       .map(([k, v]) => `<span><b>${esc(k)}:</b> ${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</span>`).join('') + '</div>';
   } else mensaje($('#iaRes'), ...explicar(codigo, datos));
 });
