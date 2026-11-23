@@ -245,9 +245,12 @@ Si la escuela cobrara la inscripción a cada clase, tendría que emitir y valida
 |---|---|---|
 | Jesús Ángel Aguilar Vázquez | 20204845 | Login con JWT, roles y dueño (inscripciones), integración con Gemini, contrato OpenAPI, CORS y front. |
 | César Alberto Gerardo Vergara | 20204927 | CRUD de clases con validación (BUG-142), persistencia en SQLite con consultas parametrizadas y contrato en /docs, revisión del PR de login y roles, documentación v1.0.0. |
+| Manuel Alcaraz Baltazar | 20202740 | [PENDIENTE: qué hizo] |
 
 <!-- Cada integrante escribe la suya, con sus palabras: ¿qué pieza le costó más y por qué? ¿Qué haría distinto si este proyecto fuera de una empresa? -->
 
 **Jesús Ángel Aguilar Vázquez:** [PENDIENTE: reflexión con sus palabras]
+
+**Manuel Alcaraz Baltazar:** [PENDIENTE: reflexión con sus palabras]
 
 **César Alberto Gerardo Vergara:** Lo que más me costó fue la parte de la IA con Gemini. Al principio la clave no me funcionaba porque la había pegado mal en el `.env`, y luego aunque ya funcionaba la API me respondía 504 porque el modelo tardaba más de 5 segundos. Ahí entendí para qué sirve el tiempo máximo: sin él la página se quedaría esperando sin decir nada. También me confundía por qué la página no podía usar la API si con curl sí funcionaba, hasta que vi el OPTIONS en la pestaña Red y entendí que CORS lo revisa el navegador. Si esto fuera de una empresa, haría las pruebas desde el principio y no al final, guardaría las claves bien desde el primer día y documentaría cada cosa conforme la hacemos, porque al final cuesta acordarse de por qué se hizo así.
