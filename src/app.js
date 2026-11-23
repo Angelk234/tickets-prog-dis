@@ -28,6 +28,17 @@ const CONTRATO_JSON = path.join(__dirname, '..', 'openapi.json');
 const DOCS = path.join(__dirname, '..', 'docs.html');
 
 const app = express();
+
+// ---------- CORS: qué páginas pueden usar su API desde el navegador ----------
+const cors = require('cors');
+const ORIGENES = (process.env.CORS_ORIGENES ?? 'http://127.0.0.1:5500,http://localhost:5500').split(',');
+
+app.use(cors({
+  origin: ORIGENES,                                   // una lista, nunca '*'
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type']   // sin Authorization, el token no pasa la pregunta previa
+}));
+
 app.use(express.json());
 
 // Autenticación (/api/login, /api/me y alias /login)
