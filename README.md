@@ -250,4 +250,4 @@ Si la escuela cobrara la inscripción a cada clase, tendría que emitir y valida
 
 **Jesús Ángel Aguilar Vázquez:** [PENDIENTE: reflexión con sus palabras]
 
-**César Alberto Gerardo Vergara:** [PENDIENTE: reflexión con sus palabras]
+**César Alberto Gerardo Vergara:** Lo que más me costó fue la parte de la IA con Gemini. Al principio la clave no me funcionaba porque la había pegado mal en el `.env`, y luego aunque ya funcionaba la API me respondía 504 porque el modelo tardaba más de 5 segundos. Ahí entendí para qué sirve el tiempo máximo: sin él la página se quedaría esperando sin decir nada. También me confundía por qué la página no podía usar la API si con curl sí funcionaba, hasta que vi el OPTIONS en la pestaña Red y entendí que CORS lo revisa el navegador. Si esto fuera de una empresa, haría las pruebas desde el principio y no al final, guardaría las claves bien desde el primer día y documentaría cada cosa conforme la hacemos, porque al final cuesta acordarse de por qué se hizo así.
