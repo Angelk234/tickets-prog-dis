@@ -41,6 +41,28 @@ app.use(cors({
 
 app.use(express.json());
 
+// Bitácora en vivo en la terminal para ver cada petición, usuario y respuesta
+app.use((req, res, next) => {
+  const inicio = Date.now();
+  const origJson = res.json.bind(res);
+  let resumen = '';
+  res.json = (cuerpo) => {
+    try {
+      const txt = JSON.stringify(cuerpo);
+      resumen = txt.length > 110 ? txt.slice(0, 110) + '…' : txt;
+    } catch {}
+    return origJson(cuerpo);
+  };
+  res.on('finish', () => {
+    const ms = Date.now() - inicio;
+    const hora = new Date().toLocaleTimeString();
+    const quien = req.yo ? ` [${req.yo.usuario}:${req.yo.rol}]` : '';
+    const color = res.statusCode >= 500 ? '\x1b[31m' : res.statusCode >= 400 ? '\x1b[33m' : '\x1b[32m';
+    console.log(`\x1b[90m[${hora}]\x1b[0m ${req.method.padEnd(7)} ${req.originalUrl.padEnd(26)} -> ${color}${res.statusCode}\x1b[0m (${ms} ms)${quien}${resumen ? '  ' + resumen : ''}`);
+  });
+  next();
+});
+
 // Autenticación (/api/login, /api/me y alias /login)
 app.use('/api', auth);
 app.use('/', auth);
@@ -65,4 +87,10 @@ app.use((err, req, res, next) => {                 // JSON roto y cualquier otro
 });
 
 const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => console.log(`Escuchando en http://127.0.0.1:${PORT}  ·  contrato en /docs`));
+app.listen(PORT, (err) => {
+  if (err) {
+    console.error(`Error al abrir el puerto ${PORT}: ${err.message} (¿ya hay otra terminal corriendo la API?)`);
+    process.exit(1);
+  }
+  console.log(`Escuchando en http://127.0.0.1:${PORT}  ·  contrato en /docs`);
+});

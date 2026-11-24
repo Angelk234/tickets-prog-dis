@@ -3,57 +3,438 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Front de mi proyecto</title>
+<title>SICEUC · Registro de Estudiantes | Universidad de Colima</title>
 <!--
-  front_inicial.html · Unidad III, Sesión 6 · Programación Distribuida (UdeC)
-  Una página que USA su API desde el navegador: login, lista, alta con errores por campo
-  y su endpoint con IA. Lo único que tienen que cambiar es el bloque CONFIG de abajo
-  (el kit lo arma a partir de su prueba.json).
+  Portal Institucional · Registro de Estudiantes (Estilo SICEUC / EDUC - Universidad de Colima)
+  Unidad III · Programación Distribuida · Facultad de Telemática (UdeC)
 
-  Cómo abrirla (Windows, cmd):
+  Cómo servirla (nunca con doble clic para respetar el origen CORS):
      cd front
      python -m http.server 5500
-     y en el navegador:  http://127.0.0.1:5500
-  No la abran con doble clic: el origen sería "null" y su API no lo tendrá en su lista de CORS.
+     Abrir en navegador: http://127.0.0.1:5500
 -->
 <style>
-:root{--bg:#F3F5F9;--panel:#fff;--ink:#141C2B;--soft:#4F5A6B;--line:#DCE2EB;--blue:#2E5BE6;--blue-t:#E8EEFD;
-  --teal:#0C6259;--teal-t:#E2F5F2;--amber:#7A4E0E;--amber-t:#FCF0DC;--red:#9C3422;--red-t:#FBE9E6;
-  --mono:Consolas,'IBM Plex Mono',Menlo,monospace;--sans:'Segoe UI',system-ui,-apple-system,sans-serif}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px}
-button,input,select,textarea{font:inherit}
-:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
-header h1{font-size:20px;margin:0}
-header .info{font-family:var(--mono);font-size:13px;opacity:.85;overflow-wrap:anywhere}
-.card{min-width:0}
-header button{background:transparent;border:1px solid #fff6;color:#fff;border-radius:8px;padding:4px 12px;cursor:pointer}
-main{max-width:1100px;margin:0 auto;padding:18px 16px 40px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.card h2{font-size:17px;margin:0 0 10px}
-.ancho{grid-column:1/-1}
-label{display:block;font-size:13px;font-weight:600;color:var(--soft);margin-top:8px}
-input,select,textarea{display:block;width:100%;margin-top:3px;border:1px solid #C9D1DD;border-radius:9px;padding:8px 10px;background:#fff}
-input.mal,select.mal,textarea.mal{border-color:var(--red);background:var(--red-t)}
-.err-campo{color:var(--red);font-size:13px;margin-top:3px}
-.btn{margin-top:12px;background:var(--blue);color:#fff;border:0;border-radius:10px;padding:9px 16px;font-weight:600;cursor:pointer}
-.btn:disabled{opacity:.55;cursor:wait}
-.msg{margin-top:10px;border-radius:10px;padding:9px 12px;font-size:14.5px}
-.msg.ok{background:var(--teal-t);color:var(--teal)}
-.msg.aviso{background:var(--amber-t);color:var(--amber)}
-.msg.mal{background:var(--red-t);color:var(--red)}
-.tabla{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:12.5px;color:var(--soft);text-transform:uppercase;letter-spacing:.03em}
-.rueda{display:inline-block;width:16px;height:16px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:g .8s linear infinite;vertical-align:-3px;margin-right:6px}
-@keyframes g{to{transform:rotate(360deg)}}
-.chips span{display:inline-block;background:var(--blue-t);color:#1F3FA8;border-radius:999px;padding:3px 10px;margin:3px 4px 0 0;font-size:14px}
-.chips b{font-weight:600}
-#registro{font-family:var(--mono);font-size:12.5px;line-height:1.6;max-height:180px;overflow:auto;margin:0;white-space:pre-wrap}
-.oculto{display:none}
-@media (max-width:760px){main{grid-template-columns:1fr}}
+:root {
+  --udec-green-dark: #063E28;
+  --udec-green: #006341;
+  --udec-green-mid: #0D7A53;
+  --udec-green-soft: #E6F2ED;
+  --udec-gold: #C59B27;
+  --udec-gold-soft: #FBF5E4;
+  --bg: #F3F6F4;
+  --panel: #FFFFFF;
+  --ink: #16241E;
+  --soft: #4E6158;
+  --muted: #768980;
+  --line: #D6E0DA;
+  --amber: #85520A;
+  --amber-t: #FEF4E2;
+  --red: #A1261C;
+  --red-t: #FCECEB;
+  --mono: 'Cascadia Code', Consolas, 'IBM Plex Mono', Menlo, monospace;
+  --sans: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --shadow: 0 4px 16px rgba(6, 62, 40, 0.06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.45;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: 3px solid var(--udec-gold); outline-offset: 2px; }
+
+/* Barra superior institucional UdeC */
+.topbar {
+  background: linear-gradient(135deg, var(--udec-green-dark) 0%, var(--udec-green) 100%);
+  color: #fff;
+  border-bottom: 4px solid var(--udec-gold);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.14);
+}
+.topbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.crest {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(197, 155, 39, 0.75);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.brand-eyebrow {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: #EBD388;
+  font-weight: 700;
+}
+.brand h1 {
+  font-size: 19px;
+  margin: 1px 0 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.brand-sub {
+  font-size: 12.5px;
+  opacity: 0.85;
+}
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.env-pill {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 5px 10px;
+  border-radius: 8px;
+  color: #E9F3EE;
+}
+.link-docs {
+  color: #fff;
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(197, 155, 39, 0.22);
+  border: 1px solid rgba(197, 155, 39, 0.65);
+  padding: 5px 11px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.link-docs:hover { background: rgba(197, 155, 39, 0.38); }
+.sesion-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.badge-sesion {
+  font-size: 12.5px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.btn-salir {
+  background: #fff;
+  color: var(--udec-green-dark);
+  border: 0;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-salir:hover { background: var(--udec-gold-soft); }
+
+/* Sub-barra informativa */
+.subbar {
+  background: #E8EFEA;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--soft);
+}
+.subbar-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 7px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+/* Contenedor principal */
+main {
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 20px 36px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  flex: 1;
+}
+.card {
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--udec-green);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+.card.gold-top { border-top-color: var(--udec-gold); }
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #EDF2EF;
+}
+.card h2 {
+  font-size: 16.5px;
+  margin: 0;
+  color: var(--udec-green-dark);
+  font-weight: 700;
+}
+.ruta-tag {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: var(--udec-green-soft);
+  color: var(--udec-green-dark);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ancho { grid-column: 1 / -1; }
+.desc {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--soft);
+}
+
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--soft);
+  margin-top: 9px;
+}
+.grid-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+.grid-campos .campo-full { grid-column: 1 / -1; }
+input, select, textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  border: 1px solid #C3D0C9;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #FCFEFD;
+  color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--udec-green);
+  background: #fff;
+}
+input.mal, select.mal, textarea.mal {
+  border-color: var(--red);
+  background: var(--red-t);
+}
+.err-campo {
+  color: var(--red);
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* Botones */
+.acciones-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.btn {
+  background: var(--udec-green);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 8.5px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn:hover { background: var(--udec-green-dark); }
+.btn:disabled { opacity: 0.55; cursor: wait; }
+.btn-sec {
+  background: #EEF3F0;
+  color: var(--udec-green-dark);
+  border: 1px solid #C7D5CE;
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-sec:hover { background: var(--udec-green-soft); }
+.btn-peligro {
+  background: var(--red-t);
+  color: var(--red);
+  border: 1px solid #EABAB6;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-peligro:hover { background: #F7D6D3; }
+
+/* Accesos rápidos de demostración */
+.demos-bar {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.demos-bar span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.chip-btn {
+  background: #F7FAF8;
+  border: 1px solid var(--line);
+  color: var(--soft);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip-btn:hover {
+  border-color: var(--udec-green);
+  color: var(--udec-green-dark);
+  background: var(--udec-green-soft);
+}
+
+/* Mensajes de estado */
+.msg {
+  margin-top: 10px;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-left: 4px solid transparent;
+}
+.msg.ok { background: var(--udec-green-soft); color: var(--udec-green-dark); border-left-color: var(--udec-green); }
+.msg.aviso { background: var(--amber-t); color: var(--amber); border-left-color: var(--udec-gold); }
+.msg.mal { background: var(--red-t); color: var(--red); border-left-color: var(--red); }
+
+/* Tablas estilo SICEUC */
+.tabla { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid #E6EEE9;
+  vertical-align: middle;
+}
+th {
+  background: #F5F9F7;
+  font-size: 11.5px;
+  color: var(--soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+tr:hover td { background: #FAFDFB; }
+.cod-pill {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12.5px;
+  background: var(--udec-green-soft);
+  color: var(--udec-green-dark);
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid #BFE0D1;
+}
+
+.rueda {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 2.5px solid var(--line);
+  border-top-color: var(--udec-green);
+  border-radius: 50%;
+  animation: g 0.8s linear infinite;
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+@keyframes g { to { transform: rotate(360deg); } }
+
+.chips { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips span {
+  display: inline-block;
+  background: var(--udec-green-soft);
+  color: var(--udec-green-dark);
+  border: 1px solid #B7DCCB;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13.5px;
+}
+.chips b { font-weight: 700; text-transform: uppercase; font-size: 11.5px; color: var(--soft); margin-right: 4px; }
+
+/* Monitor de red tipo consola */
+.consola-box {
+  background: #0F1F18;
+  color: #D8EDE2;
+  border-radius: 9px;
+  padding: 12px 14px;
+  border: 1px solid #223D31;
+}
+#registro {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  max-height: 185px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Pie de página institucional */
+footer {
+  background: var(--udec-green-dark);
+  color: rgba(255, 255, 255, 0.82);
+  border-top: 3px solid var(--udec-gold);
+  font-size: 12.5px;
+  padding: 12px 20px;
+  text-align: center;
+}
+
+.oculto { display: none !important; }
+@media (max-width: 820px) {
+  main { grid-template-columns: 1fr; }
+  .grid-campos { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -63,12 +444,12 @@ const CONFIG = {
   nombre: "Registro de estudiantes",
   api: "http://127.0.0.1:3000/api",                      // la dirección de SU API
   login: { ruta: "/login", campos: ["usuario","clave"], campo_token: "access_token" },
-  coleccion: { ruta: "/classes", titulo: "classes" },
+  coleccion: { ruta: "/classes", titulo: "Oferta de Clases" },
   nuevo: { ruta: "/classes", campos: [
-    { nombre: "nombre", tipo: "texto", ejemplo: "Programación Distribuida" },
-    { nombre: "codigo", tipo: "texto", ejemplo: "DIS001" },
-    { nombre: "cupo", tipo: "numero", ejemplo: 30 },
-    { nombre: "profesor_id", tipo: "numero", ejemplo: 1 }
+    { nombre: "nombre", etiqueta: "Nombre de la asignatura", tipo: "texto", ejemplo: "Programación Distribuida", full: true },
+    { nombre: "codigo", etiqueta: "Código (6 alfanuméricos)", tipo: "texto", ejemplo: "DIS001" },
+    { nombre: "cupo", etiqueta: "Cupo máximo (1 a 60)", tipo: "numero", ejemplo: 30 },
+    { nombre: "profesor_id", etiqueta: "ID Profesor titular", tipo: "numero", ejemplo: 1 }
   ] },
   ia: { metodo: "POST", ruta: "/estudiantes/carrera", campo: "carrera", fijos: {},
         ejemplo: "ing en soft" }
@@ -76,70 +457,187 @@ const CONFIG = {
 /* ======================================================================== */
 </script>
 
-<header>
-  <h1 id="titulo">Mi proyecto</h1>
-  <span class="info" id="info"></span>
-  <span><span class="info" id="quien"></span> <button id="salir" class="oculto">Salir</button></span>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="crest" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#EBD388" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7l9 5 9-5-9-5z"/>
+          <path d="M3 17l9 5 9-5"/>
+          <path d="M3 12l9 5 9-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-eyebrow">Universidad de Colima · Facultad de Telemática</div>
+        <h1 id="titulo">SICEUC · Registro de Estudiantes</h1>
+        <div class="brand-sub">Sistema Escolar de Alta de Clases, Inscripciones y Clasificación Académica</div>
+      </div>
+    </div>
+
+    <div class="header-meta">
+      <span class="env-pill" id="info"></span>
+      <a class="link-docs" href="http://127.0.0.1:3000/docs" target="_blank" rel="noopener">Contrato /docs ↗</a>
+      <div class="sesion-box">
+        <span class="badge-sesion" id="quien"></span>
+        <button id="salir" class="btn-salir oculto" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
 </header>
 
+<div class="subbar">
+  <div class="subbar-inner">
+    <span><strong>Unidad III · Proyecto Final (v1.0.0)</strong> · Arquitectura REST con JWT, Roles, Anti-BOLA, SQLite y Gemini IA</span>
+    <span>Educación con Responsabilidad Social · <strong>UdeC</strong></span>
+  </div>
+</div>
+
 <main>
-  <section class="card" id="cLogin">
-    <h2>Entrar</h2>
+  <!-- 1. LOGIN INSTITUCIONAL -->
+  <section class="card gold-top" id="cLogin">
+    <div class="card-head">
+      <h2>Acceso Institucional (SICEUC)</h2>
+      <span class="ruta-tag">POST /api/login</span>
+    </div>
+    <p class="desc">Inicia sesión con tu cuenta universitaria para obtener un token JWT firmado (vigencia de 30 min).</p>
     <form id="fLogin"></form>
+    <div class="demos-bar">
+      <span>Cuentas de prueba:</span>
+      <button type="button" class="chip-btn" data-u="admin" data-p="admin123">admin (Admin)</button>
+      <button type="button" class="chip-btn" data-u="profe" data-p="profe123">profe (Profesor)</button>
+      <button type="button" class="chip-btn" data-u="ana" data-p="ana12345">ana (Alumna)</button>
+      <button type="button" class="chip-btn" data-u="beto" data-p="beto12345">beto (Alumno)</button>
+    </div>
   </section>
 
+  <!-- 2. ALTA DE CLASE (CRUD + 422 + 409 + 403) -->
   <section class="card" id="cNuevo">
-    <h2 id="tNuevo">Nuevo</h2>
+    <div class="card-head">
+      <h2 id="tNuevo">Alta de Asignatura</h2>
+      <span class="ruta-tag">POST /api/classes</span>
+    </div>
+    <p class="desc">Exclusivo para Administradores y Profesores (403 a alumnos). Valida formato por campo (422) y código único (409).</p>
     <form id="fNuevo"></form>
+    <div class="demos-bar">
+      <span>Rellenar rápido:</span>
+      <button type="button" class="chip-btn" id="fillValido">Ejemplo válido</button>
+      <button type="button" class="chip-btn" id="fillInvalido">Dato inválido (422)</button>
+      <button type="button" class="chip-btn" id="fillDuplicado">Código repetido (409)</button>
+    </div>
   </section>
 
-  <section class="card" id="cIA">
-    <h2>Pregúntale a la IA</h2>
+  <!-- 3. INSCRIPCIONES DE ALUMNOS Y VERIFICACIÓN BOLA -->
+  <section class="card">
+    <div class="card-head">
+      <h2>Inscripciones por Código y Dueño</h2>
+      <span class="ruta-tag">/api/inscripciones</span>
+    </div>
+    <p class="desc">El alumno se inscribe con el código de 6 caracteres (el dueño sale del JWT). Protegido contra BOLA (404 en ajenos).</p>
+    <form id="fInsc">
+      <label for="inscCodigo">Código de la clase a inscribir (solo rol alumno)</label>
+      <div class="acciones-fila" style="margin-top:4px">
+        <input id="inscCodigo" placeholder="Ej. SIS202" style="max-width:180px;margin-top:0">
+        <button class="btn" id="inscBtn" type="submit">Inscribirme</button>
+        <button class="btn-sec" id="verMisInsc" type="button">Ver mis inscripciones</button>
+      </div>
+      <div class="err-campo" id="e_inscCodigo"></div>
+      <div id="inscMsg"></div>
+    </form>
+    <div class="demos-bar">
+      <span>Verificar dueño (BOLA):</span>
+      <button type="button" class="chip-btn" data-check-id="1">GET /inscripciones/1</button>
+      <button type="button" class="chip-btn" data-check-id="2">GET /inscripciones/2</button>
+    </div>
+    <div id="listaInsc" class="tabla" style="margin-top:8px"></div>
+  </section>
+
+  <!-- 4. INTEGRACIÓN CON IA GEMINI -->
+  <section class="card gold-top" id="cIA">
+    <div class="card-head">
+      <h2>Normalizador Académico con IA (Gemini)</h2>
+      <span class="ruta-tag" id="iaRutaTag">POST /api/estudiantes/carrera</span>
+    </div>
+    <p class="desc">Normaliza nombres informales de carreras y clasifica su área (timeout de 5 s → 504, 1 reintento en fallas pasajeras).</p>
     <form id="fIA">
-      <label for="iaTexto" id="iaEtq"></label>
-      <textarea id="iaTexto" rows="3"></textarea>
-      <button class="btn" id="iaBtn">Enviar</button>
+      <label for="iaTexto" id="iaEtq">Carrera escrita por el aspirante o alumno</label>
+      <textarea id="iaTexto" rows="2"></textarea>
+      <div class="acciones-fila">
+        <button class="btn" id="iaBtn" type="submit">Clasificar con Gemini</button>
+      </div>
       <div id="iaRes"></div>
     </form>
+    <div class="demos-bar">
+      <span>Ejemplos:</span>
+      <button type="button" class="chip-btn" data-ia="ing en soft">ing en soft</button>
+      <button type="button" class="chip-btn" data-ia="lic en enfermeria">lic en enfermeria</button>
+      <button type="button" class="chip-btn" data-ia="telematica">telematica</button>
+    </div>
   </section>
 
+  <!-- 5. LISTA DE CLASES -->
   <section class="card ancho">
-    <h2 id="tLista">Lista</h2>
+    <div class="card-head">
+      <h2 id="tLista">Oferta Académica de Clases</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="ruta-tag">GET /api/classes</span>
+        <button class="btn-sec" id="recargar" type="button">↻ Actualizar tabla</button>
+      </div>
+    </div>
+    <div id="listaMsg"></div>
     <div id="lista" class="tabla"></div>
-    <button class="btn" id="recargar" type="button">Volver a cargar</button>
   </section>
 
+  <!-- 6. BITÁCORA HTTP EN VIVO -->
   <section class="card ancho">
-    <h2>Lo que la página le pidió a la API <span style="font-weight:400;color:var(--soft);font-size:13px">(lo mismo lo ven en F12 → Red / Network)</span></h2>
-    <pre id="registro"></pre>
+    <div class="card-head">
+      <h2>Monitor de Peticiones HTTP en Vivo <span style="font-weight:400;color:var(--soft);font-size:13px">(equivalente a F12 → Red / Network)</span></h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-sec" id="probarSinToken" type="button">Probar GET sin token (401)</button>
+        <button class="btn-sec" id="limpiarLog" type="button">Limpiar monitor</button>
+      </div>
+    </div>
+    <div class="consola-box">
+      <pre id="registro"></pre>
+    </div>
   </section>
 </main>
+
+<footer>
+  <strong>Universidad de Colima</strong> · Facultad de Telemática · Programación Distribuida ·
+  Equipo: Jesús Ángel Aguilar Vázquez, César Alberto Gerardo Vergara y Manuel Alcaraz Baltazar · <code>v1.0.0</code>
+</footer>
 
 <script>
 "use strict";
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let TOKEN = null;
-try { TOKEN = sessionStorage.getItem('token_' + CONFIG.api); } catch (e) {}
+let PERFIL = null;
+try {
+  TOKEN = sessionStorage.getItem('token_' + CONFIG.api);
+  const p = sessionStorage.getItem('perfil_' + CONFIG.api);
+  if (p) PERFIL = JSON.parse(p);
+} catch (e) {}
 
 /* ---------- 1. Una sola función para hablar con la API ---------- */
-async function pedir(metodo, ruta, cuerpo) {
+async function pedir(metodo, ruta, cuerpo, omitirToken = false) {
   const h = { 'Accept': 'application/json' };
   if (cuerpo !== undefined) h['Content-Type'] = 'application/json';
-  if (TOKEN) h['Authorization'] = 'Bearer ' + TOKEN;          // el token viaja en CADA petición
+  if (TOKEN && !omitirToken) h['Authorization'] = 'Bearer ' + TOKEN;   // el token viaja en CADA petición
   const t0 = performance.now();
   let r;
   try {
     r = await fetch(CONFIG.api + ruta, { method: metodo, headers: h, body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) });
   } catch (e) {
-    // fetch solo "truena" si no hubo respuesta que la página pueda leer: API apagada o CORS
-    anotar(`${metodo} ${ruta} → sin respuesta (¿API apagada? ¿CORS? Abran F12 → Consola)`);
+    anotar(`${metodo} ${ruta} → SIN RESPUESTA (¿API apagada o bloqueo CORS? Revisa F12 → Consola)`);
     return { codigo: 0, datos: null };
   }
   let datos = null;
   const texto = await r.text();
   try { datos = texto ? JSON.parse(texto) : null; } catch (e) { datos = { error: texto.slice(0, 200) }; }
-  anotar(`${metodo} ${ruta} → ${r.status} (${Math.round(performance.now() - t0)} ms)`);
+  const ms = Math.round(performance.now() - t0);
+  const det = datos && datos.error ? ` · "${datos.error}"` : '';
+  anotar(`${metodo.padEnd(6)} ${ruta.padEnd(24)} → HTTP ${r.status} (${ms} ms)${det}`);
   return { codigo: r.status, datos };
 }
 
@@ -147,20 +645,19 @@ async function pedir(metodo, ruta, cuerpo) {
 function explicar(codigo, datos) {
   const e = (datos && (datos.error || datos.message || datos.detail)) || '';
   const txt = typeof e === 'string' ? e : '';
-  if (codigo === 0) return ['mal', 'No se pudo hablar con la API. ¿Está corriendo? Si sí, es CORS: abran F12 → Consola.'];
-  if (codigo === 401) { cerrarSesion(); return ['aviso', 'Tu sesión no es válida o expiró. Entra otra vez.']; }
-  if (codigo === 403) return ['aviso', 'Tu usuario no tiene permiso para esto.'];
-  if (codigo === 404) return ['aviso', 'No existe.'];
-  if (codigo === 409) return ['aviso', txt || 'Choca con algo que ya existe.'];
-  if (codigo === 422 || codigo === 400) return ['aviso', txt || 'Revisa los datos marcados.'];
-  if (codigo === 502 || codigo === 503 || codigo === 504) return ['aviso', (txt || 'El servicio externo no respondió.') + ' (no es tu culpa: intenta en un momento)'];
-  if (codigo >= 500) return ['mal', 'Error de la API (' + codigo + '). Revisen la consola donde corre su API.'];
+  if (codigo === 0) return ['mal', 'No se pudo conectar con la API. ¿Está corriendo en el puerto 3000? Si sí, revisa CORS en F12 → Consola.'];
+  if (codigo === 401) return ['aviso', txt || '401 No autenticado: falta el token, es inválido o la sesión expiró.'];
+  if (codigo === 403) return ['aviso', '403 Prohibido: ' + (txt || 'Tu rol de usuario no tiene permiso para realizar esta acción.')];
+  if (codigo === 404) return ['aviso', '404 No encontrado: ' + (txt || 'El recurso no existe o pertenece a otro usuario.')];
+  if (codigo === 409) return ['aviso', '409 Conflicto: ' + (txt || 'Choca con una regla de negocio o registro existente.')];
+  if (codigo === 422 || codigo === 400) return ['mal', '422 Validación: ' + (txt || 'Revisa los campos marcados en rojo.')];
+  if (codigo === 502 || codigo === 503 || codigo === 504) return ['aviso', `${codigo} Servicio externo: ${txt || 'La IA no respondió a tiempo.'}`];
+  if (codigo >= 500) return ['mal', 'Error interno de la API (' + codigo + ').'];
   return ['ok', txt];
 }
 function mensaje(el, tipo, texto) { el.innerHTML = texto ? `<div class="msg ${tipo}">${esc(texto)}</div>` : ''; }
 
 /* ---------- 3. Errores 422 por campo ---------- */
-// Entiende {"detalles": ["campo: mensaje"]}, el {"detail": [{loc, msg}]} de FastAPI y {"errors": [{path|param, msg}]} de Express
 function erroresPorCampo(datos) {
   const m = {};
   if (!datos) return m;
@@ -173,91 +670,268 @@ function erroresPorCampo(datos) {
   return m;
 }
 
-/* ---------- Pantalla ---------- */
-function anotar(linea) { const r = $('#registro'); r.textContent = new Date().toLocaleTimeString() + '  ' + linea + '\n' + r.textContent; }
+/* ---------- Pantalla y Sesión ---------- */
+function anotar(linea) {
+  const r = $('#registro');
+  r.textContent = new Date().toLocaleTimeString() + '  ' + linea + '\n' + r.textContent;
+}
 function pintarSesion() {
-  $('#quien').textContent = TOKEN ? 'sesión iniciada' : (CONFIG.login ? 'sin sesión' : '');
+  if (TOKEN) {
+    const etq = PERFIL && PERFIL.usuario ? `${PERFIL.usuario} · ${(PERFIL.rol || '').toUpperCase()}` : 'Sesión activa';
+    $('#quien').textContent = '👤 ' + etq;
+  } else {
+    $('#quien').textContent = 'Sin sesión iniciada';
+  }
   $('#salir').classList.toggle('oculto', !TOKEN);
   $('#cLogin').classList.toggle('oculto', !CONFIG.login || !!TOKEN);
 }
-function cerrarSesion() { TOKEN = null; try { sessionStorage.removeItem('token_' + CONFIG.api); } catch (e) {} pintarSesion(); }
-$('#salir').onclick = () => { cerrarSesion(); cargar(); };
+function cerrarSesion() {
+  TOKEN = null;
+  PERFIL = null;
+  try {
+    sessionStorage.removeItem('token_' + CONFIG.api);
+    sessionStorage.removeItem('perfil_' + CONFIG.api);
+  } catch (e) {}
+  pintarSesion();
+  $('#lista').innerHTML = '<p class="desc">Sesión cerrada. Inicia sesión arriba para consultar las asignaturas.</p>';
+  $('#listaMsg').innerHTML = '';
+  $('#listaInsc').innerHTML = '';
+  $('#inscMsg').innerHTML = '';
+}
+$('#salir').onclick = () => { cerrarSesion(); };
 
 function armarFormularios() {
-  $('#titulo').textContent = CONFIG.nombre;
-  $('#info').textContent = 'API: ' + CONFIG.api + '  ·  esta página: ' + location.origin;
-  document.title = CONFIG.nombre;
+  $('#titulo').textContent = 'SICEUC · ' + CONFIG.nombre;
+  $('#info').textContent = 'API: ' + CONFIG.api + ' · Origen: ' + location.origin;
+  document.title = 'SICEUC · ' + CONFIG.nombre + ' | Universidad de Colima';
+
   if (CONFIG.login) {
-    $('#fLogin').innerHTML = CONFIG.login.campos.map((c, i) => `<label for="l_${c}">${esc(c)}</label><input id="l_${c}" ${i === CONFIG.login.campos.length - 1 ? 'type="password"' : ''} autocomplete="${i ? 'current-password' : 'username'}">`).join('') +
-      '<button class="btn">Entrar</button><div id="lMsg"></div>';
+    $('#fLogin').innerHTML =
+      '<div class="grid-campos">' +
+      CONFIG.login.campos.map((c, i) =>
+        `<div><label for="l_${c}">${i ? 'Contraseña' : 'Usuario universitario'}</label>` +
+        `<input id="l_${c}" ${i === CONFIG.login.campos.length - 1 ? 'type="password"' : ''} placeholder="${i ? '••••••••' : 'Ej. admin, profe, ana'}" autocomplete="${i ? 'current-password' : 'username'}"></div>`
+      ).join('') +
+      '</div><div class="acciones-fila"><button class="btn" type="submit">Iniciar sesión</button></div><div id="lMsg"></div>';
   }
+
   if (CONFIG.nuevo) {
-    $('#tNuevo').textContent = 'Nuevo · POST ' + CONFIG.nuevo.ruta;
-    $('#fNuevo').innerHTML = CONFIG.nuevo.campos.map(c => `<label for="n_${c.nombre}">${esc(c.nombre)}</label>` + (c.tipo === 'booleano'
-      ? `<select id="n_${c.nombre}"><option value="true">true</option><option value="false">false</option></select>`
-      : `<input id="n_${c.nombre}" ${c.tipo === 'numero' ? 'type="number" step="any"' : ''} placeholder="${esc(c.ejemplo ?? '')}">`) + `<div class="err-campo" id="e_${c.nombre}"></div>`).join('') +
-      '<button class="btn">Guardar</button><div id="nMsg"></div>';
+    $('#fNuevo').innerHTML =
+      '<div class="grid-campos">' +
+      CONFIG.nuevo.campos.map(c =>
+        `<div class="${c.full ? 'campo-full' : ''}"><label for="n_${c.nombre}">${esc(c.etiqueta || c.nombre)} <code style="font-weight:400;color:var(--muted)">(${esc(c.nombre)})</code></label>` +
+        (c.tipo === 'booleano'
+          ? `<select id="n_${c.nombre}"><option value="true">true</option><option value="false">false</option></select>`
+          : `<input id="n_${c.nombre}" ${c.tipo === 'numero' ? 'type="number" step="any"' : ''} placeholder="${esc(c.ejemplo ?? '')}">`) +
+        `<div class="err-campo" id="e_${c.nombre}"></div></div>`
+      ).join('') +
+      '</div><div class="acciones-fila"><button class="btn" type="submit">Guardar asignatura</button></div><div id="nMsg"></div>';
   } else $('#cNuevo').classList.add('oculto');
+
   if (CONFIG.ia) {
-    $('#iaEtq').textContent = CONFIG.ia.campo + ' · ' + CONFIG.ia.metodo + ' ' + CONFIG.ia.ruta;
-    $('#iaTexto').placeholder = CONFIG.ia.ejemplo || '';
+    $('#iaRutaTag').textContent = CONFIG.ia.metodo + ' /api' + CONFIG.ia.ruta;
+    $('#iaTexto').placeholder = 'Ejemplo: ' + (CONFIG.ia.ejemplo || '');
   } else $('#cIA').classList.add('oculto');
-  $('#tLista').textContent = (CONFIG.coleccion.titulo || 'Lista') + ' · GET ' + CONFIG.coleccion.ruta;
+
+  $('#tLista').textContent = CONFIG.coleccion.titulo || 'Oferta de Clases';
 }
+
+/* ---------- Botones de autollenado rápido para la presentación ---------- */
+document.querySelectorAll('[data-u]').forEach(b => {
+  b.onclick = () => {
+    $('#l_usuario').value = b.dataset.u;
+    $('#l_clave').value = b.dataset.p;
+    $('#fLogin').requestSubmit();
+  };
+});
+$('#fillValido').onclick = () => {
+  $('#n_nombre').value = 'Programación Distribuida';
+  $('#n_codigo').value = 'DIS401';
+  $('#n_cupo').value = '30';
+  $('#n_profesor_id').value = '1';
+};
+$('#fillInvalido').onclick = () => {
+  $('#n_nombre').value = '';
+  $('#n_codigo').value = 'AB';
+  $('#n_cupo').value = '0';
+  $('#n_profesor_id').value = '99';
+};
+$('#fillDuplicado').onclick = () => {
+  $('#n_nombre').value = 'Redes Duplicada';
+  $('#n_codigo').value = 'PRG101';
+  $('#n_cupo').value = '30';
+  $('#n_profesor_id').value = '1';
+};
+document.querySelectorAll('[data-ia]').forEach(b => {
+  b.onclick = () => { $('#iaTexto').value = b.dataset.ia; $('#fIA').requestSubmit(); };
+});
+$('#limpiarLog').onclick = () => { $('#registro').textContent = ''; };
+$('#probarSinToken').onclick = async () => {
+  const { codigo, datos } = await pedir('GET', CONFIG.coleccion.ruta, undefined, true);
+  mensaje($('#listaMsg'), ...explicar(codigo, datos));
+};
 
 /* ---------- Login ---------- */
 $('#fLogin').addEventListener('submit', async ev => {
   ev.preventDefault();
   const cuerpo = {};
   CONFIG.login.campos.forEach(c => cuerpo[c] = $('#l_' + c).value);
-  const btn = ev.target.querySelector('button'); btn.disabled = true;
+  const btn = ev.target.querySelector('button[type="submit"]'); btn.disabled = true;
   const { codigo, datos } = await pedir('POST', CONFIG.login.ruta, cuerpo);
   btn.disabled = false;
   const tok = datos && (datos[CONFIG.login.campo_token] || datos.access_token || datos.token || datos.jwt);
   if (codigo === 200 && tok) {
     TOKEN = tok;
-    try { sessionStorage.setItem('token_' + CONFIG.api, tok); } catch (e) {}
-    pintarSesion(); cargar();
-  } else if (codigo === 401) mensaje($('#lMsg'), 'mal', 'Usuario o clave incorrectos.');
-  else mensaje($('#lMsg'), ...explicar(codigo, datos));
+    PERFIL = { usuario: datos.usuario || cuerpo.usuario, rol: datos.rol || '' };
+    try {
+      sessionStorage.setItem('token_' + CONFIG.api, tok);
+      sessionStorage.setItem('perfil_' + CONFIG.api, JSON.stringify(PERFIL));
+    } catch (e) {}
+    $('#listaMsg').innerHTML = '';
+    pintarSesion();
+    cargar();
+  } else if (codigo === 401) {
+    mensaje($('#lMsg'), 'mal', '401 Credenciales inválidas: usuario o contraseña incorrectos.');
+  } else {
+    mensaje($('#lMsg'), ...explicar(codigo, datos));
+  }
 });
 
-/* ---------- Lista ---------- */
+/* ---------- Lista de Clases (GET y DELETE) ---------- */
 async function cargar() {
-  $('#lista').innerHTML = '<span class="rueda"></span>Cargando…';
+  $('#lista').innerHTML = '<p><span class="rueda"></span>Consultando oferta académica…</p>';
   const { codigo, datos } = await pedir('GET', CONFIG.coleccion.ruta);
+  if (codigo === 401) cerrarSesion();
   const filas = Array.isArray(datos) ? datos : (datos && (datos.datos || datos.data || datos.items || datos.resultados));
   if (codigo === 200 && Array.isArray(filas)) {
-    if (!filas.length) { $('#lista').innerHTML = '<p>No hay registros todavía.</p>'; return; }
+    if (!filas.length) {
+      $('#lista').innerHTML = '<p class="desc">No hay asignaturas visibles para tu usuario actual.</p>';
+      return;
+    }
     const cols = Object.keys(filas[0]).slice(0, 7);
-    $('#lista').innerHTML = `<table><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}</tr>` +
-      filas.slice(0, 50).map(f => `<tr>${cols.map(c => `<td>${esc(typeof f[c] === 'object' ? JSON.stringify(f[c]) : f[c])}</td>`).join('')}</tr>`).join('') + '</table>';
+    $('#lista').innerHTML =
+      `<table><thead><tr>${cols.map(c => `<th>${esc(c)}</th>`).join('')}<th>Acciones</th></tr></thead><tbody>` +
+      filas.slice(0, 50).map(f =>
+        `<tr>${cols.map(c => {
+          const val = typeof f[c] === 'object' ? JSON.stringify(f[c]) : f[c];
+          return c === 'codigo' ? `<td><span class="cod-pill">${esc(val)}</span></td>` : `<td>${esc(val)}</td>`;
+        }).join('')}` +
+        `<td><button type="button" class="btn-peligro" data-del-clase="${esc(f.id)}">Eliminar</button></td></tr>`
+      ).join('') + '</tbody></table>';
+
+    document.querySelectorAll('[data-del-clase]').forEach(b => {
+      b.onclick = async () => {
+        b.disabled = true;
+        const { codigo: cDel, datos: dDel } = await pedir('DELETE', `${CONFIG.coleccion.ruta}/${b.dataset.delClase}`);
+        b.disabled = false;
+        if (cDel === 204 || cDel === 200) {
+          mensaje($('#listaMsg'), 'ok', `204 Asignatura #${b.dataset.delClase} eliminada correctamente.`);
+          cargar();
+        } else {
+          mensaje($('#listaMsg'), ...explicar(cDel, dDel));
+        }
+      };
+    });
   } else {
     const [t, m] = explicar(codigo, datos);
-    $('#lista').innerHTML = `<div class="msg ${t}">${esc(m || 'La respuesta no trae una lista.')}</div>`;
+    $('#lista').innerHTML = `<div class="msg ${t}">${esc(m || 'Inicia sesión para consultar las clases.')}</div>`;
   }
 }
-$('#recargar').onclick = cargar;
+$('#recargar').onclick = () => { $('#listaMsg').innerHTML = ''; cargar(); };
 
-/* ---------- Alta ---------- */
+/* ---------- Alta de Clase (POST /classes) ---------- */
 $('#fNuevo').addEventListener('submit', async ev => {
   ev.preventDefault();
   const cuerpo = {};
   CONFIG.nuevo.campos.forEach(c => {
     const v = $('#n_' + c.nombre).value;
     cuerpo[c.nombre] = c.tipo === 'numero' && v !== '' ? Number(v) : c.tipo === 'booleano' ? v === 'true' : v;
-    $('#n_' + c.nombre).classList.remove('mal'); $('#e_' + c.nombre).textContent = '';
+    $('#n_' + c.nombre).classList.remove('mal');
+    $('#e_' + c.nombre).textContent = '';
   });
-  const btn = ev.target.querySelector('button'); btn.disabled = true;
+  const btn = ev.target.querySelector('button[type="submit"]'); btn.disabled = true;
   const { codigo, datos } = await pedir('POST', CONFIG.nuevo.ruta, cuerpo);
   btn.disabled = false;
-  if (codigo === 201 || codigo === 200) { mensaje($('#nMsg'), 'ok', 'Guardado.'); ev.target.reset(); cargar(); return; }
+  if (codigo === 201 || codigo === 200) {
+    mensaje($('#nMsg'), 'ok', `201 Asignatura "${cuerpo.nombre}" registrada con éxito (ID ${datos?.id ?? ''}).`);
+    ev.target.reset();
+    cargar();
+    return;
+  }
   const porCampo = erroresPorCampo(datos);
   Object.entries(porCampo).forEach(([k, v]) => {
     const inp = $('#n_' + k);
     if (inp) { inp.classList.add('mal'); $('#e_' + k).textContent = v; }
   });
   mensaje($('#nMsg'), ...explicar(codigo, datos));
+});
+
+/* ---------- Inscripciones y prueba BOLA ---------- */
+async function cargarInscripciones() {
+  const { codigo, datos } = await pedir('GET', '/inscripciones');
+  if (codigo !== 200 || !Array.isArray(datos)) {
+    mensaje($('#inscMsg'), ...explicar(codigo, datos));
+    return;
+  }
+  if (!datos.length) {
+    $('#listaInsc').innerHTML = '<p class="desc">No tienes inscripciones registradas.</p>';
+    return;
+  }
+  $('#listaInsc').innerHTML =
+    '<table><thead><tr><th>ID</th><th>Alumno</th><th>Código</th><th>Asignatura</th><th>Acción</th></tr></thead><tbody>' +
+    datos.map(i =>
+      `<tr><td>${esc(i.id)}</td><td>${esc(i.usuario)}</td><td><span class="cod-pill">${esc(i.codigo)}</span></td><td>${esc(i.clase_nombre)}</td>` +
+      `<td><button type="button" class="btn-peligro" data-baja="${esc(i.id)}">Dar de baja</button></td></tr>`
+    ).join('') + '</tbody></table>';
+
+  document.querySelectorAll('[data-baja]').forEach(b => {
+    b.onclick = async () => {
+      b.disabled = true;
+      const { codigo: cB, datos: dB } = await pedir('DELETE', `/inscripciones/${b.dataset.baja}`);
+      b.disabled = false;
+      if (cB === 204) {
+        mensaje($('#inscMsg'), 'ok', `204 Inscripción #${b.dataset.baja} dada de baja.`);
+        cargarInscripciones();
+        cargar();
+      } else mensaje($('#inscMsg'), ...explicar(cB, dB));
+    };
+  });
+}
+$('#verMisInsc').onclick = cargarInscripciones;
+
+$('#fInsc').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  $('#inscCodigo').classList.remove('mal');
+  $('#e_inscCodigo').textContent = '';
+  const codigoTxt = $('#inscCodigo').value.trim();
+  const btn = $('#inscBtn'); btn.disabled = true;
+  const { codigo, datos } = await pedir('POST', '/inscripciones', { codigo: codigoTxt });
+  btn.disabled = false;
+  if (codigo === 201) {
+    mensaje($('#inscMsg'), 'ok', `201 Inscrito correctamente en ${datos.codigo} (${datos.clase_nombre}).`);
+    $('#inscCodigo').value = '';
+    cargarInscripciones();
+    cargar();
+    return;
+  }
+  const porCampo = erroresPorCampo(datos);
+  if (porCampo.codigo) {
+    $('#inscCodigo').classList.add('mal');
+    $('#e_inscCodigo').textContent = porCampo.codigo;
+  }
+  mensaje($('#inscMsg'), ...explicar(codigo, datos));
+});
+
+document.querySelectorAll('[data-check-id]').forEach(b => {
+  b.onclick = async () => {
+    const id = b.dataset.checkId;
+    const { codigo, datos } = await pedir('GET', `/inscripciones/${id}`);
+    if (codigo === 200 && datos) {
+      mensaje($('#inscMsg'), 'ok', `200 OK · Inscripción #${datos.id}: alumno "${datos.usuario}" en ${datos.codigo} (${datos.clase_nombre}).`);
+    } else {
+      mensaje($('#inscMsg'), ...explicar(codigo, datos));
+    }
+  };
 });
 
 /* ---------- IA: rueda mientras espera, mensaje claro si falla ---------- */
@@ -267,19 +941,29 @@ $('#fIA').addEventListener('submit', async ev => {
   const cuerpo = Object.assign({}, CONFIG.ia.fijos || {}, { [CONFIG.ia.campo]: texto });
   const btn = $('#iaBtn'); btn.disabled = true;
   const t0 = performance.now();
-  const reloj = setInterval(() => { $('#iaRes').innerHTML = `<div class="msg aviso"><span class="rueda"></span>Preguntando a la IA… ${((performance.now() - t0) / 1000).toFixed(1)} s</div>`; }, 100);
+  const reloj = setInterval(() => {
+    $('#iaRes').innerHTML = `<div class="msg aviso"><span class="rueda"></span>Consultando a Gemini IA… ${((performance.now() - t0) / 1000).toFixed(1)} s</div>`;
+  }, 100);
   const { codigo, datos } = await pedir(CONFIG.ia.metodo || 'POST', CONFIG.ia.ruta, cuerpo);
-  clearInterval(reloj); btn.disabled = false;
+  clearInterval(reloj);
+  btn.disabled = false;
   if ((codigo === 200 || codigo === 201) && datos) {
     const quitar = new Set(['id', 'usuario', 'fecha', 'equipo_id']);
-    // el campo de entrada solo se oculta si la IA lo regresa igual; si lo corrigió, se muestra
     const eco = ([k, v]) => k === CONFIG.ia.campo && String(v).trim() === texto;
     $('#iaRes').innerHTML = '<div class="chips">' + Object.entries(datos).filter(e => !quitar.has(e[0]) && !eco(e))
       .map(([k, v]) => `<span><b>${esc(k)}:</b> ${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</span>`).join('') + '</div>';
-  } else mensaje($('#iaRes'), ...explicar(codigo, datos));
+  } else {
+    mensaje($('#iaRes'), ...explicar(codigo, datos));
+  }
 });
 
-armarFormularios(); pintarSesion(); cargar();
+armarFormularios();
+pintarSesion();
+if (TOKEN) {
+  cargar();
+} else {
+  $('#lista').innerHTML = '<p class="desc">Inicia sesión con tu cuenta universitaria para consultar la oferta académica.</p>';
+}
 </script>
 </body>
 </html>
